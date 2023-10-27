@@ -1,0 +1,51 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id          String       @id @default(uuid())
+  img         String?
+  localePosts LocalePost[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model LocalePost {
+  title        String
+  img          String?
+  body         String
+  post         Post     @relation(fields: [postId], references: [id], onDelete: Cascade)
+  language     Language @relation(fields: [languageLang], references: [lang])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  postId       String
+  languageLang String
+
+  @@unique([postId, languageLang])
+}
+
+model Language {
+  lang            String       @unique()
+  fullLang        String?
+  alternativeLang String?
+  LocalePost      LocalePost[]
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String
+  password  String
+  role      UserRole @default(User)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum UserRole {
+  User
+  Admin
+}
