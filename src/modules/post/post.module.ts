@@ -6,10 +6,6 @@ import { PostSeedService } from './post.seed.service';
 
 @Module({
   imports: [PrismaModule],
-  providers: [
-    PostResolver,
-    PostService,
-    // PostSeedService
-  ],
+  providers: [PostResolver, PostService, PostSeedService],
 })
 export class PostModule {}
