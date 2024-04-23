@@ -5,6 +5,9 @@ export class Post {
   @Field()
   id: string;
 
+  @Field()
+  key: string;
+
   @Field(() => [LocalePost])
   localePosts: LocalePost[];
 

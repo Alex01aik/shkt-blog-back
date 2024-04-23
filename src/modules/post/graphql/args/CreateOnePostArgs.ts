@@ -2,6 +2,9 @@ import { Field, ArgsType, InputType } from '@nestjs/graphql';
 
 @ArgsType()
 export class CreateOnePostArgs {
+  @Field()
+  key: string;
+
   @Field(() => [LocalePostInput])
   localePosts: LocalePostInput[];
 }
@@ -9,8 +12,11 @@ export class CreateOnePostArgs {
 @InputType()
 export class LocalePostInput {
   @Field()
-  lang: string;
+  title: string;
 
   @Field()
-  content: string;
+  languageLang: string;
+
+  @Field()
+  body: string;
 }

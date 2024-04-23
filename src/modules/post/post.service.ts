@@ -7,6 +7,8 @@ import { FindManyLocalePostArgs } from './graphql/args/FindManyLocalePostArgs';
 import { UpdateOnePostArgs } from './graphql/args/UpdateOnePostArgs';
 import { UniqueArgs } from 'src/common/graphql/args/UniqueArgs';
 import { FindOneLocalePostArgs } from './graphql/args/FindOneLocalePostArgs';
+import { KeyArgs } from 'src/common/graphql/args/KeyArgs';
+import { FindOneLocalePostByKeyArgs } from './graphql/args/FindOneLocalePostByKeyArgs';
 
 @Injectable()
 export class PostService {
@@ -16,6 +18,32 @@ export class PostService {
     return await this.prisma.post.findMany({
       select: {
         id: true,
+        key: true,
+        createdAt: true,
+        updatedAt: true,
+        localePosts: {
+          select: {
+            title: true,
+            body: true,
+            createdAt: true,
+            updatedAt: true,
+            languageLang: true,
+          },
+        },
+      },
+      take: args.take,
+      skip: args.skip,
+    });
+  }
+
+  async findOne(args: UniqueArgs) {
+    return await this.prisma.post.findUnique({
+      where: {
+        id: args.id,
+      },
+      select: {
+        id: true,
+        key: true,
         createdAt: true,
         updatedAt: true,
         localePosts: {
@@ -31,13 +59,14 @@ export class PostService {
     });
   }
 
-  async findOne(args: UniqueArgs) {
+  async findOneByKey(args: KeyArgs) {
     return await this.prisma.post.findUnique({
       where: {
-        id: args.id,
+        key: args.key,
       },
       select: {
         id: true,
+        key: true,
         createdAt: true,
         updatedAt: true,
         localePosts: {
@@ -60,6 +89,35 @@ export class PostService {
       },
       select: {
         id: true,
+        key: true,
+        createdAt: true,
+        updatedAt: true,
+        localePosts: {
+          where: {
+            languageLang: {
+              equals: args.lang,
+            },
+          },
+          select: {
+            title: true,
+            body: true,
+            createdAt: true,
+            updatedAt: true,
+            languageLang: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findOneLocaleByKey(args: FindOneLocalePostByKeyArgs) {
+    return await this.prisma.post.findUnique({
+      where: {
+        key: args.key,
+      },
+      select: {
+        id: true,
+        key: true,
         createdAt: true,
         updatedAt: true,
         localePosts: {
@@ -82,8 +140,20 @@ export class PostService {
 
   async findManyLocale(args: FindManyLocalePostArgs) {
     return await this.prisma.post.findMany({
+      where: {
+        localePosts: {
+          some: {
+            languageLang: {
+              equals: args.lang,
+            },
+          },
+        },
+      },
+      take: args.take,
+      skip: args.skip,
       select: {
         id: true,
+        key: true,
         createdAt: true,
         updatedAt: true,
         localePosts: {
@@ -104,6 +174,7 @@ export class PostService {
     });
   }
 
+  // TODO optional
   titleFromContent(content: string) {
     const regex = /<h1>(.*?)<\/h1>/;
     const match = content.match(regex);
@@ -114,13 +185,14 @@ export class PostService {
   async createOne(data: CreateOnePostArgs): Promise<SuccessOutput> {
     const localePosts = data.localePosts.map((item) => {
       return {
-        title: this.titleFromContent(item.content),
-        body: item.content,
-        languageLang: item.lang,
+        title: item.title,
+        body: item.body,
+        languageLang: item.languageLang,
       };
     });
     await this.prisma.post.create({
       data: {
+        key: data.key,
         localePosts: {
           createMany: {
             data: localePosts,
@@ -141,24 +213,40 @@ export class PostService {
   }
 
   async updateOne(data: UpdateOnePostArgs): Promise<SuccessOutput> {
+    const oldPostData = await this.findOne({ id: data.id });
+
+    const newLocalePosts = data.localePosts.filter(
+      (item) =>
+        !oldPostData.localePosts.some(
+          (locPost) => locPost.languageLang === item.languageLang,
+        ),
+    );
+
     const localePostsData = data.localePosts.map((item) => ({
       data: {
-        body: item.content,
+        title: item.title,
+        body: item.body,
       },
       where: {
-        languageLang: item.lang,
+        languageLang: item.languageLang,
       },
     }));
 
-    await this.prisma.post.update({
-      where: {
-        id: data.id,
-      },
-      data: {
-        localePosts: {
-          updateMany: localePostsData,
+    await this.prisma.$transaction(async (prisma) => {
+      await prisma.post.update({
+        where: {
+          id: data.id,
         },
-      },
+        data: {
+          key: data.key,
+          localePosts: {
+            updateMany: localePostsData,
+          },
+        },
+      });
+      await this.prisma.localePost.createMany({
+        data: newLocalePosts.map((item) => ({ ...item, postId: data.id })),
+      });
     });
 
     return { success: true };

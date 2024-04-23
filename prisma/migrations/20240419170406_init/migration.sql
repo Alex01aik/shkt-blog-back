@@ -4,6 +4,7 @@ CREATE TYPE "UserRole" AS ENUM ('User', 'Admin');
 -- CreateTable
 CREATE TABLE "Post" (
     "id" TEXT NOT NULL,
+    "key" TEXT NOT NULL,
     "img" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -40,6 +41,9 @@ CREATE TABLE "User" (
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Post_key_key" ON "Post"("key");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "LocalePost_postId_languageLang_key" ON "LocalePost"("postId", "languageLang");

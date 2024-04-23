@@ -10,21 +10,22 @@ export class PostSeedService implements OnModuleInit {
     if (!posts.length) {
       await this.prisma.post.create({
         data: {
+          key: 'test_title',
           localePosts: {
             createMany: {
               data: [
                 {
-                  title: 'en test title',
+                  title: 'Eng TEST TITLE',
                   body: 'en test body',
                   languageLang: 'en',
                 },
                 {
-                  title: 'ua test title',
+                  title: 'UA TEST TITLE',
                   body: 'ua test body',
                   languageLang: 'ua',
                 },
                 {
-                  title: 'ru test title',
+                  title: 'RU TEST TITLE',
                   body: 'ru test body',
                   languageLang: 'ru',
                 },

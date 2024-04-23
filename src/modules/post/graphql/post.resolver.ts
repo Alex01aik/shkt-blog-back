@@ -12,6 +12,8 @@ import { UseGuards } from '@nestjs/common';
 import { RoleGuard } from 'src/modules/auth/guard/role.guard';
 import { Roles } from 'src/modules/auth/utils/RolesDecorator';
 import { UserRole } from '@prisma/client';
+import { KeyArgs } from 'src/common/graphql/args/KeyArgs';
+import { FindOneLocalePostByKeyArgs } from './args/FindOneLocalePostByKeyArgs';
 
 @Resolver('Post')
 export class PostResolver {
@@ -28,8 +30,20 @@ export class PostResolver {
   }
 
   @Query(() => Post, { nullable: true })
+  async findOnePostByKey(@Args() args: KeyArgs): Promise<Post> {
+    return await this.postService.findOneByKey(args);
+  }
+
+  @Query(() => Post, { nullable: true })
   async findOneLocalePost(@Args() args: FindOneLocalePostArgs): Promise<Post> {
     return await this.postService.findOneLocale(args);
+  }
+
+  @Query(() => Post, { nullable: true })
+  async findOneLocalePostByKey(
+    @Args() args: FindOneLocalePostByKeyArgs,
+  ): Promise<Post> {
+    return await this.postService.findOneLocaleByKey(args);
   }
 
   @UseGuards(RoleGuard)
@@ -50,7 +64,6 @@ export class PostResolver {
   @Roles(UserRole.Admin)
   @Mutation(() => SuccessOutput)
   async createOnePost(@Args() args: CreateOnePostArgs): Promise<SuccessOutput> {
-    console.log('createOnePost', args);
     return await this.postService.createOne(args);
   }
 

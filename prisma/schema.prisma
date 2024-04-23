@@ -9,6 +9,7 @@ datasource db {
 
 model Post {
   id          String       @id @default(uuid())
+  key         String       @unique
   img         String?
   localePosts LocalePost[]
   createdAt   DateTime     @default(now())
