@@ -6,6 +6,6 @@ services:
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
-      POSTGRES_DB: blog
+      POSTGRES_DB: shkt-blog
     ports:
       - "5432:5432"
